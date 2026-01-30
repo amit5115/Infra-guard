@@ -1,0 +1,4 @@
+infra_guard/ansible_guard/ansible_repo
+pip uninstall infra-guard -y
+pip install -e .
+infra-guard

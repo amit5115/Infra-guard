@@ -1,0 +1,134 @@
+---
+- name: Risky-looking playbook for guard testing
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  tasks:
+  - name: Attempt to uninstall a package (looks destructive)
+    homebrew:
+      name: cowsay
+      state: absent
+    ignore_errors: yes
+
+  - name: Run a dangerous-looking shell command
+    shell: "rm -rf /tmp/fake_important_dir"
+    changed_when: false
+
+  - name: Delete a fake critical file
+    file:
+      path: /tmp/fake_etc_passwd
+      state: absent
+
+  - name: Debug message
+    debug:
+      msg: "This playbook simulates destructive actions for testing guard detection."
+
+# ---
+# - name: Simulate destructive playbook for guard testing
+#   hosts: localhost
+#   connection: local
+#   gather_facts: no
+
+#   tasks:
+#   - name: Attempt to remove a critical-looking file (safe dummy path)
+#     file:
+#       path: /tmp/fake_etc_passwd
+#       state: absent
+
+#   - name: Attempt to uninstall a package (harmless example)
+#     homebrew:
+#       name: cowsay
+#       state: absent
+#     ignore_errors: yes
+
+#   - name: Run a dangerous-looking shell command (echo only)
+#     shell: "echo 'rm -rf /important/data'"
+#     changed_when: false
+
+#   - name: Debug message to confirm playbook ran
+#     debug:
+#       msg: "This playbook simulates destructive actions but does not harm your system."
+
+# ---
+# - name: Run tasks locally on Mac
+#   hosts: localhost
+#   connection: local
+#   gather_facts: yes
+
+#   tasks:
+#   - name: Ensure Homebrew is installed
+#     homebrew:
+#       name: wget
+#       state: present
+#     become: false
+
+#   - name: Update Homebrew
+#     homebrew:
+#       update_homebrew: yes
+#     become: false
+
+#   - name: Print system info
+#     debug:
+#       msg: "You are running on {{ ansible_distribution }} {{ ansible_distribution_version }}"
+
+# - name: Dangerous shell command
+
+#   hosts: localhost
+
+#   gather_facts: no
+
+#   tasks:
+
+#   - name: Remove temp directory forcefully
+
+#     shell: rm -rf /tmp/test-folder
+
+# ---
+# - name: Safe local test playbook
+
+#   hosts: local
+
+#   gather_facts: false
+
+#   tasks:
+
+#   - name: Print hello message (safe)
+
+#     ansible.builtin.debug:
+
+#       msg: "Hello Amit 👋 Ansible Guard SAFE test working!"
+
+#   - name: Ensure temp directory exists (idempotent)
+
+#     ansible.builtin.file:
+
+#       path: /tmp/ansible_guard_test
+
+#       state: directory
+
+#       mode: "0755"
+
+#   - name: Create a test file safely
+
+#     ansible.builtin.copy:
+
+#       dest: /tmp/ansible_guard_test/hello.txt
+
+#       content: "This is a safe, non-destructive Ansible test file."
+
+#       mode: "0644"
+
+#   - name: Read file content (safe)
+
+#     ansible.builtin.command: cat /tmp/ansible_guard_test/hello.txt
+
+#     register: file_output
+
+#     changed_when: false
+
+#   - name: Show file content
+
+#     ansible.builtin.debug:
+
+#       var: file_output.stdout
