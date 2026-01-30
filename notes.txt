@@ -2,3 +2,10 @@ infra_guard/ansible_guard/ansible_repo
 pip uninstall infra-guard -y
 pip install -e .
 infra-guard
+
+git clone <repo>
+cd Infra-guard
+python3 -m venv venv
+source venv/bin/activate
+pip install -e .
+infra-guard
