@@ -4,9 +4,7 @@ venv/
 .terraform/
 *.tfstate
 *.tfstate.backup
-plans/
 state/
-audit_logs/
 .DS_Store
 path/
 terraform
