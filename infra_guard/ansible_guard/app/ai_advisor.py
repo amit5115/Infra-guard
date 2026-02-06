@@ -1,5 +1,6 @@
 import json
-from .company_llm import call_company_llm
+# from .company_llm import call_company_llm
+from .common_llm import call_llm
 
 def explain_ansible_risk(risks):
     prompt = f"""
@@ -31,7 +32,7 @@ Rules:
         {"role": "user", "content": prompt}
     ]
 
-    response = call_company_llm(messages)
+    response = call_llm(messages)
 
     data = json.loads(response)
 
