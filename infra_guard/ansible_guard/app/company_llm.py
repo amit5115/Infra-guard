@@ -1,7 +1,7 @@
 import requests
 
 PROXY_ENDPOINT = "https://ai-framework1:8085"
-API_KEY = "f7607702011b43e19417a91c1dd07489"
+API_KEY = ""
 LLM_MODEL = "gpt-4.1"
 
 HEADERS = {
