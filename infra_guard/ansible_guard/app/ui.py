@@ -56,35 +56,55 @@ console = Console()
 
 
 def show_ai_analysis(ai):
-    # 🧠 AI Summary
+    # -------------------------
+    # SAFE EXTRACTION
+    # -------------------------
+    summary = ai.get("summary", "No summary available")
+    risk_level = ai.get("risk_level", "UNKNOWN")
+    recommendation = ai.get("recommendation", "Review manually")
+    impact = ai.get("impact", [])
+
+    # -------------------------
+    # AI SUMMARY
+    # -------------------------
     console.print(
         Panel(
-            ai["summary"],
+            summary,
             title="🧠 AI Summary",
             style="cyan"
         )
     )
 
-    # 🚨 Risk Level
-    table = Table(title="🚨 Risk Level", show_header=True, header_style="bold red")
+    # -------------------------
+    # RISK LEVEL
+    # -------------------------
+    table = Table(title="⚠️ Risk Level", show_header=True, header_style="bold red")
     table.add_column("Overall Risk", style="red")
-    table.add_row(ai["risk_level"])
+    table.add_row(str(risk_level))
     console.print(table)
 
-    # 📉 Impact
-    impact = "\n".join(f"- {i}" for i in ai["impact"])
+    # -------------------------
+    # IMPACT (SAFE)
+    # -------------------------
+    if isinstance(impact, list) and impact:
+        impact_text = "\n".join(f"- {i}" for i in impact)
+    else:
+        impact_text = "- No detailed impact available"
+
     console.print(
         Panel(
-            impact,
+            impact_text,
             title="📉 Impact",
             style="yellow"
         )
     )
 
-    # ✅ Recommendation
+    # -------------------------
+    # RECOMMENDATION
+    # -------------------------
     console.print(
         Panel(
-            ai["recommendation"],
+            recommendation,
             title="✅ Recommendation",
             style="green"
         )

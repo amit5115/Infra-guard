@@ -1,21 +1,3 @@
-# import sys
-# from plan_utils import load_plan, plan_counts
-# from plan_analyzer import get_destructive_resources
-# from ai_advisor import explain_risk
-# from ui import header, success, warning, error, show_plan_summary, show_ai_output
-# from plan_utils import plan_exists
-# from plan_analyzer import get_all_resource_changes
-# from ai_advisor import explain_all_changes
-# from plan_utils import tf_files_changed, save_tf_hash
-# from cost_engine import calculate_cost_impact
-# from ai_advisor import explain_cost_impact
-# from ui import show_cost_impact
-# from cost_guard import is_cost_allowed
-# from cost_trend import save_trend, get_latest_trend
-# from ui import show_cost_trend
-# import subprocess
-# import os
-
 
 
 import sys
@@ -113,130 +95,6 @@ def cost_ui():
     ai_text = explain_cost_impact(costs)
     show_ai_output(ai_text)
 
-# # ---------------------------------------------------
-# # TERRAFORM PLAN
-# # ---------------------------------------------------
-# def run_terraform_plan():
-#     header("Terraform Plan Generator")
-
-#     os.makedirs(PLANS_DIR, exist_ok=True)
-
-#     success("Running terraform init")
-#     subprocess.run(
-#         ["terraform", "init", "-input=false"],
-#         cwd=TERRAFORM_DIR,
-#         stdout=subprocess.DEVNULL,
-#         stderr=subprocess.DEVNULL,
-#         check=True
-#     )
-
-#     success("Running terraform plan")
-#     subprocess.run(
-#         ["terraform", "plan", "-out",
-#          os.path.join(PLANS_DIR, "plan.out")],
-#         cwd=TERRAFORM_DIR,
-#         stdout=subprocess.DEVNULL,
-#         stderr=subprocess.DEVNULL,
-#         check=True
-#     )
-
-#     success("Converting plan to JSON")
-#     with open(os.path.join(PLANS_DIR, "plan.json"), "w") as f:
-#         subprocess.run(
-#             ["terraform", "show", "-json",
-#              os.path.join(PLANS_DIR, "plan.out")],
-#             cwd=TERRAFORM_DIR,
-#             stdout=f,
-#             stderr=subprocess.DEVNULL,
-#             check=True
-#         )
-
-#     success("Terraform plan.json generated successfully")
-#     log_event("PLAN_GENERATED")
-
-# # ---------------------------------------------------
-# # PLAN CHECK
-# # ---------------------------------------------------
-# def ensure_latest_plan(force=False):
-#     if plan_exists() and not force and not tf_files_changed():
-#         warning("Using existing Terraform plan for analysis")
-#         return
-
-#     warning("Terraform files changed or plan missing")
-#     warning("Generating fresh Terraform plan...")
-#     run_terraform_plan()
-#     save_tf_hash()
-
-# # ---------------------------------------------------
-# # APPLY PHASE
-# # ---------------------------------------------------
-# def apply_phase():
-#     header("Terraform Apply")
-
-#     log_event("APPLY_ATTEMPT")
-
-#     ensure_latest_plan(force=True)
-
-#     costs, total = calculate_cost_impact()
-#     allowed, total = is_cost_allowed(costs)
-
-#     if not allowed:
-#         error(f"Cost limit exceeded: ${total}/month")
-#         error("Apply is BLOCKED by cost guardrail")
-#         log_event("APPLY_BLOCKED_COST", f"${total}")
-#         return
-
-#     destructive = get_destructive_resources()
-
-#     if destructive:
-#         error("Destructive changes detected")
-
-#         confirm = input(
-#             "⚠️ Destructive changes found. Continue anyway? (yes/no): "
-#         ).strip().lower()
-
-#         if confirm != "yes":
-#             warning("Apply aborted by user.")
-#             log_event("APPLY_ABORTED_DESTRUCTIVE")
-#             return
-
-#     success("Applying Terraform...")
-
-#     subprocess.run(
-#         ["terraform", "apply", "-auto-approve"],
-#         cwd=TERRAFORM_DIR,
-#         check=True
-#     )
-
-#     success("Terraform apply completed successfully")
-#     log_event("APPLY_SUCCESS")
-
-
-# def destroy_phase():
-#     header("Terraform Destroy")
-
-#     log_event("DESTROY_ATTEMPT")
-
-#     confirm = input(
-#         "⚠️ This will DESTROY infrastructure. Continue? (yes/no): "
-#     ).strip().lower()
-
-#     if confirm != "yes":
-#         warning("Destroy aborted by user.")
-#         log_event("DESTROY_ABORTED")
-#         return
-
-#     success("Destroying infrastructure...")
-
-#     subprocess.run(
-#         ["terraform", "destroy", "-auto-approve"],
-#         cwd=TERRAFORM_DIR,
-#         check=True
-#     )
-
-#     success("Terraform destroy completed")
-#     log_event("DESTROY_SUCCESS")
-
 
 
 # ---------------------------------------------------
@@ -304,22 +162,38 @@ def run_terraform_plan():
 # ---------------------------------------------------
 # PLAN CHECK
 # ---------------------------------------------------
+# def ensure_latest_plan(force=False):
+#     # Always regenerate tfvars from YAML
+#     try:
+#         generate_tfvars()
+#         success("Environment config loaded")
+#     except Exception as e:
+#         warning(f"Could not regenerate tfvars: {e}")
+
+#     if plan_exists() and not force and not tf_files_changed():
+#         warning("Using existing Terraform plan for analysis")
+#         return
+
+#     warning("Terraform files changed or plan missing")
+#     warning("Generating fresh Terraform plan...")
+#     run_terraform_plan()
+#     save_tf_hash()
+
 def ensure_latest_plan(force=False):
-    # Always regenerate tfvars from YAML
-    try:
-        generate_tfvars()
-        success("Environment config loaded")
-    except Exception as e:
-        warning(f"Could not regenerate tfvars: {e}")
-
-    if plan_exists() and not force and not tf_files_changed():
-        warning("Using existing Terraform plan for analysis")
-        return
-
-    warning("Terraform files changed or plan missing")
-    warning("Generating fresh Terraform plan...")
-    run_terraform_plan()
-    save_tf_hash()
+   try:
+       generate_tfvars()
+       success("Environment config loaded")
+   except Exception as e:
+       warning(f"Could not regenerate tfvars: {e}")
+   if force:
+       warning("Force enabled → generating fresh Terraform plan")
+       run_terraform_plan()
+       return
+   if plan_exists():
+       warning("Using existing Terraform plan")
+       return
+   warning("No Terraform plan found → generating plan")
+   run_terraform_plan()
 
 
 # ---------------------------------------------------
@@ -458,7 +332,7 @@ def ai_ui():
 
     header("AI Risk Analyzer")
 
-    ensure_latest_plan()
+    ensure_latest_plan(force=True)
 
     changes = get_all_resource_changes()
 

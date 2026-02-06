@@ -37,7 +37,8 @@
 
 
 # from company_llm import call_company_llm
-from .company_llm import call_company_llm
+# from .company_llm import call_company_llm
+from .common_llm import call_llm
 import json
 import requests
 
@@ -67,7 +68,7 @@ IMPORTANT:
 """
 
     try:
-        return call_company_llm([
+        return call_llm([
             {"role": "user", "content": prompt}
         ])
     except Exception:
@@ -125,5 +126,5 @@ Rules:
         {"role": "user", "content": prompt}
     ]
 
-    response = call_company_llm(messages)
+    response = call_llm(messages)
     return response   # ✅ STRING

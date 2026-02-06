@@ -6,6 +6,8 @@ infra-guard
 git clone <repo>
 cd Infra-guard
 python3 -m venv venv
-source venv/bin/activate
+source venv/bin/activate2
 pip install -e .
 infra-guard
+
+
